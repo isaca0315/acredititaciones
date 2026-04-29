@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isacio Tamayo | Certifications Portfolio</title>
+
+  <meta name="description" content="Professional certification portfolio for Isacio Tamayo in DevOps, Cloud, Blue Team, Red Team and Cybersecurity." />
+  <meta name="author" content="Isacio Tamayo" />
+
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg-soft: #0f1b2e;
+      --card: #111c2f;
+      --card-light: #16243a;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --border: rgba(148, 163, 184, 0.2);
+      --success: #22c55e;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 35%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.08), transparent 30%),
+        linear-gradient(135deg, #020617, var(--bg));
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .container {
+      width: min(1120px, 92%);
+      margin: auto;
+    }
+
+    .hero {
+      padding: 70px 0 45px;
+      text-align: center;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -1.5px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero p {
+      max-width: 780px;
+      margin: 0 auto 26px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .contact {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .contact a {
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      transition: 0.2s ease;
+      font-size: 0.95rem;
+    }
+
+    .contact a:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 40px 0;
+    }
+
+    .stat {
+      background: rgba(17, 28, 47, 0.82);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .summary {
+      background: rgba(17, 28, 47, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+      margin-bottom: 42px;
+    }
+
+    .summary h2 {
+      margin-bottom: 12px;
+      font-size: 1.6rem;
+    }
+
+    .summary p {
+      color: var(--muted);
+      max-width: 900px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      background: var(--card-light);
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--text);
+      font-size: 0.88rem;
+    }
+
+    section {
+      margin: 46px 0;
+    }
+
+    .section-header {
+      margin-bottom: 22px;
+    }
+
+    .section-header h2 {
+      font-size: 1.55rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin-bottom: 6px;
+    }
+
+    .section-header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .cert-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(22, 36, 58, 0.96), rgba(17, 28, 47, 0.96));
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      min-height: 215px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: 0.2s ease;
+    }
+
+    .cert-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 35%);
+      pointer-events: none;
+    }
+
+    .cert-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(56, 189, 248, 0.65);
+      box-shadow: var(--shadow);
+    }
+
+    .cert-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .verified {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--success);
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .cert-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .issuer {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 16px;
+    }
+
+    .category {
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .cert-link {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      background: var(--accent);
+      color: #03101f;
+      padding: 10px 13px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      transition: 0.2s ease;
+      margin-top: 18px;
+    }
+
+    .cert-link:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    footer {
+      margin-top: 60px;
+      padding: 30px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .hero {
+        padding-top: 45px;
+      }
+
+      .stats,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        padding: 22px;
+      }
+
+      .cert-card {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="hero">
+    <div class="container">
+      <div class="badge-top">Professional Certification Portfolio</div>
+
+      <h1>Isacio Tamayo<br><span>DevOps · Cloud · Cybersecurity</span></h1>
+
+      <p>
+        Public verification page for my professional certifications in cloud platforms,
+        blue team operations, red team fundamentals, SIEM analysis, API security,
+        phishing prevention and cybersecurity foundations.
+      </p>
+
+      <div class="contact">
+        <a href="mailto:isacio1695@gmail.com">isacio1695@gmail.com</a>
+        <a href="tel:+50762467494">+507 6246-7494</a>
+        <a href="https://www.linkedin.com/in/isaciotamayo/" target="_blank" rel="noopener noreferrer">LinkedIn Profile</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="stats">
+      <div class="stat">
+        <strong>16</strong>
+        <span>Certifications</span>
+      </div>
+      <div class="stat">
+        <strong>Cloud</strong>
+        <span>AWS & Azure</span>
+      </div>
+      <div class="stat">
+        <strong>Blue</strong>
+        <span>Defense & SIEM</span>
+      </div>
+      <div class="stat">
+        <strong>Red</strong>
+        <span>Offensive Security</span>
+      </div>
+    </div>
+
+    <div class="summary">
+      <h2>About this portfolio</h2>
+      <p>
+        This page centralizes my certification verification links for recruiters,
+        hiring managers and technical reviewers. My profile combines DevOps operations,
+        cloud infrastructure and cybersecurity skills across defensive and offensive domains.
+      </p>
+
+      <div class="tags">
+        <span class="tag">AWS</span>
+        <span class="tag">Azure</span>
+        <span class="tag">Blue Team</span>
+        <span class="tag">Red Team</span>
+        <span class="tag">SIEM</span>
+        <span class="tag">Active Directory</span>
+        <span class="tag">API Security</span>
+        <span class="tag">Phishing Prevention</span>
+        <span class="tag">DevSecOps</span>
+      </div>
+    </div>
+
+    <section>
+      <div class="section-header">
+        <h2>Cyberwarfare Labs</h2>
+        <p>Blue Team, Red Team and multi-cloud cybersecurity certifications.</p>
+      </div>
+
+      <div class="grid">
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Blue Team</div>
+            <h3>BTF - Blue Team Fundamentals</h3>
+            <p class="issuer">Cyberwarfare Labs</p>
+          </div>
+          <a class="cert-link" href="https://labs.cyberwarfare.live/credential/achievement/69460b5f9f54e3df3cbbfce0" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cybersecurity Analysis</div>
+            <h3>C3SA - Certified Cyber Security Analyst</h3>
+            <p class="issuer">Cyberwarfare Labs</p>
+          </div>
+          <a class="cert-link" href="https://labs.cyberwarfare.live/credential/achievement/696ad4a96d896ee834707cb6" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Red Team</div>
+            <h3>AD-RTS - Active Directory Red Team Specialist</h3>
+            <p class="issuer">Cyberwarfare Labs</p>
+          </div>
+          <a class="cert-link" href="https://labs.cyberwarfare.live/credential/achievement/69ef076441c9cc82906744a0" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cloud Security</div>
+            <h3>MCBTA - Multi-Cloud Blue Team Analyst</h3>
+            <p class="issuer">Cyberwarfare Labs</p>
+          </div>
+          <a class="cert-link" href="https://labs.cyberwarfare.live/credential/achievement/69be17f53f6937a0d91e0193" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cloud Security</div>
+            <h3>MCRTA - Multi-Cloud Red Team Analyst</h3>
+            <p class="issuer">Cyberwarfare Labs</p>
+          </div>
+          <a class="cert-link" href="https://labs.cyberwarfare.live/credential/achievement/69b8d61ac7ba6425e4980924" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Red Team Leaders</h2>
+        <p>Log analysis and cybersecurity education certifications.</p>
+      </div>
+
+      <div class="grid">
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">SIEM</div>
+            <h3>CSLA - Certified SIEM Log Analysis</h3>
+            <p class="issuer">Red Team Leaders</p>
+          </div>
+          <a class="cert-link" href="https://courses.redteamleaders.com/exam-completion/099fa897246fdd3c" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cybersecurity Education</div>
+            <h3>CCEP - Certified Cybersecurity Educator Professional</h3>
+            <p class="issuer">Red Team Leaders</p>
+          </div>
+          <a class="cert-link" href="https://courses.redteamleaders.com/exam-completion/eac57de91b47fc5b" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Cloud Certifications</h2>
+        <p>AWS and Microsoft Azure cloud credentials.</p>
+      </div>
+
+      <div class="grid">
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">AWS</div>
+            <h3>AWS Certified Cloud Practitioner</h3>
+            <p class="issuer">Amazon Web Services / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/earner/earned/badge/c8dfe8b6-7400-4ade-a964-c6189845dde5" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Microsoft Azure</div>
+            <h3>Microsoft Certified: Azure Fundamentals</h3>
+            <p class="issuer">Microsoft / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/badges/b7243565-e5a3-4419-88e7-b3b315193b72/public_url" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">AWS Academy</div>
+            <h3>AWS Academy Graduate - Cloud Architecting</h3>
+            <p class="issuer">AWS Academy / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/badges/f8daa647-c096-4b6d-a9be-473a920c295f/public_url" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Cybersecurity Foundations</h2>
+        <p>General cybersecurity, API security and phishing prevention credentials.</p>
+      </div>
+
+      <div class="grid">
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cybersecurity</div>
+            <h3>(ISC)² Certified in Cybersecurity - CC</h3>
+            <p class="issuer">(ISC)² / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/badges/cc5c1393-2a30-4ae9-bdca-4a72f9d54a81/public_url" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Cybersecurity</div>
+            <h3>Cybersecurity Fundamentals</h3>
+            <p class="issuer">ISACA / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/earner/earned/badge/f949cec2-73e9-4dce-9a60-4c4a92e8689a" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">API Security</div>
+            <h3>API Security Fundamentals</h3>
+            <p class="issuer">APIsec University / Credly</p>
+          </div>
+          <a class="cert-link" href="https://www.credly.com/badges/e843fc69-724f-4def-8280-08baeab36c3f/public_url" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Phishing Prevention</div>
+            <h3>Certified Phishing Prevention Specialist - CPPS</h3>
+            <p class="issuer">Hack & Fix Academy</p>
+          </div>
+          <a class="cert-link" href="https://academy.hackandfix.com/certificate-page/?user=9755&course=53700" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Additional Certificate</h2>
+        <p>Technical foundation certificate.</p>
+      </div>
+
+      <div class="grid">
+        <article class="cert-card">
+          <div class="cert-body">
+            <div class="verified">● Verified</div>
+            <div class="category">Version Control</div>
+            <h3>W3Schools Git Certificate</h3>
+            <p class="issuer">W3Schools</p>
+          </div>
+          <a class="cert-link" href="https://verify.w3schools.com/1P2P8JME6N" target="_blank" rel="noopener noreferrer">View Credential</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Isacio Tamayo · Certification Portfolio</p>
+  </footer>
+</body>
+</html>
