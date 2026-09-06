@@ -157,6 +157,7 @@ code{background:rgba(255,49,88,.10);color:var(--accent);padding:2px 5px;border-r
 .project-card p{color:var(--muted);margin-bottom:18px}
 .project-tags{display:flex;flex-wrap:wrap;gap:8px}
 .project-tags span,.learning-item{border:1px solid var(--border);background:var(--card-2);padding:7px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
+.blog-badge{display:inline-flex;width:max-content;padding:5px 9px;border-radius:999px;font-size:.73rem;font-weight:900;text-transform:uppercase;letter-spacing:0;background:rgba(0,212,255,.10);color:var(--accent-2);border:1px solid rgba(0,212,255,.28);margin-bottom:14px}
 .learning-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .learning-item{text-align:center;border-radius:12px;padding:16px;color:var(--text)}
 .contact-section{text-align:center}
