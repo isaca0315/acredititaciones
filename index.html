@@ -721,6 +721,31 @@
             </ul>
             <p class="case-tags">Cloud Operations · Monitoring · Logs · Health Checks · Troubleshooting</p>
           </article>
+
+          <article class="case-card">
+            <div class="case-number">05</div>
+            <h3>CVE Reproduction & Public Vulnerability Lab Design</h3>
+            <p class="case-context">
+              Built self-contained Docker labs to reproduce real-world SSRF vulnerabilities
+              in production frameworks, including automated exploits, CTF challenges and
+              full remediation analysis.
+            </p>
+            <h4>Applied</h4>
+            <ul>
+              <li>Reproduced CVE-2026-44578 SSRF in Next.js WebSocket upgrade handler</li>
+              <li>Built5-level CTF lab for CVE-2026-64849 MLflow webhook redirect bypass</li>
+              <li>Designed fake IMDS mock and internal service targets for safe exploitation</li>
+              <li>Documented root cause, attack chain, patches and detection signatures</li>
+            </ul>
+            <h4>Skills Demonstrated</h4>
+            <ul>
+              <li>Vulnerability analysis and root cause identification (TOCTOU, missing validation)</li>
+              <li>Lab architecture with Docker Compose and isolated network topologies</li>
+              <li>Exploit development and PoC automation</li>
+              <li>Security documentation and responsible disclosure readiness</li>
+            </ul>
+            <p class="case-tags">CVE Research · SSRF · Docker · Exploit Dev · AppSec · CTF Design</p>
+          </article>
         </div>
       </div>
     </section>
@@ -780,6 +805,32 @@
               <span>Kubernetes</span><span>Docker</span><span>Deployments</span><span>Platform Engineering</span>
             </div>
           </article>
+
+          <article class="project-card">
+            <h3>CVE-2026-44578 — Next.js SSRF Lab</h3>
+            <p>
+              Self-contained Docker lab reproducing a Server-Side Request Forgery in
+              Next.js WebSocket upgrade handler. Includes vulnerable app, fake AWS IMDS
+              mock, automated exploit and a 4-flag CTF challenge.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>Docker</span><span>Next.js</span><span>CTF</span><span>Python</span>
+            </div>
+            <a class="project-link" href="https://github.com/isaca0315/CVE-2026-44578-next-js-ssrf" target="_blank" rel="noopener noreferrer">View Repository</a>
+          </article>
+
+          <article class="project-card">
+            <h3>CVE-2026-64849 — MLflow SSRF Lab</h3>
+            <p>
+              Multi-container lab exploiting a TOCTOU webhook redirect bypass in
+              MLflow. Features 5-level progressive CTF, blind SSRF, cloud metadata
+              exfiltration and full exploitation guide.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>TOCTOU</span><span>MLflow</span><span>CTF</span><span>Docker</span>
+            </div>
+            <a class="project-link" href="https://github.com/isaca0315/CVE-2026-64849-poc-lab" target="_blank" rel="noopener noreferrer">View Repository</a>
+          </article>
         </div>
       </div>
     </section>
@@ -788,19 +839,40 @@
       <div class="container">
         <div class="section-heading">
           <p class="eyebrow">Blog</p>
-          <h2>Sharing hands-on cloud, DevOps and security notes.</h2>
+          <h2>Hands-on cloud, DevOps and security research.</h2>
           <p class="section-note">
-            I am building this section as a place to publish articles based on my work and labs.
-            It is a future feature and I am working on it.
+            Technical articles based on real vulnerability research, lab design and production operations experience.
           </p>
         </div>
 
-        <div class="summary-card blog-card">
-          <span class="blog-badge">Coming soon</span>
-          <p>
-            The blog is currently in development. Soon you will find public articles about cloud operations,
-            containerized applications, Linux troubleshooting, CI/CD and security-minded infrastructure practice.
-          </p>
+        <div class="blog-grid">
+          <article class="blog-card">
+            <span class="blog-badge">Published</span>
+            <h3>CVE-2026-44578 — Next.js WebSocket Upgrade SSRF</h3>
+            <p>
+              Technical analysis of a Server-Side Request Forgery in Next.js self-hosted
+              deployments. Covers the vulnerable WebSocket upgrade handler, Docker lab
+              architecture with IMDS mock and exploitation chain.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>Next.js</span><span>Docker</span><span>AppSec</span>
+            </div>
+            <a class="project-link" href="blog-nextjs-ssrf.html">Read Article</a>
+          </article>
+
+          <article class="blog-card">
+            <span class="blog-badge">Published</span>
+            <h3>CVE-2026-64849 — MLflow Webhook SSRF via TOCTOU</h3>
+            <p>
+              Analysis of a critical SSRF in MLflow caused by a redirect validation bypass.
+              Includes multi-container lab architecture, exploitation chain and remediation
+              guidance for the Time-of-Check / Time-of-Use flaw.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>TOCTOU</span><span>MLflow</span><span>Docker</span>
+            </div>
+            <a class="project-link" href="blog-mlflow-ssrf.html">Read Article</a>
+          </article>
         </div>
       </div>
     </section>

@@ -104,9 +104,9 @@ a:focus-visible{outline:3px solid rgba(255,49,88,.55);outline-offset:4px}
 
 .skills-grid,.case-grid,.project-grid,.credential-grid,.education-grid,.security-grid{display:grid;gap:18px}
 .skills-grid{grid-template-columns:repeat(4,1fr)}
-.skill-card,.case-card,.project-card,.credential-card,.experience-card,.education-card,.security-card{background:linear-gradient(180deg,rgba(11,20,18,.95),rgba(8,14,13,.95));border:1px solid var(--border);border-radius:14px;padding:22px;transition:.2s ease;box-shadow:0 8px 20px rgba(0,0,0,.24)}
-.skill-card:hover,.case-card:hover,.project-card:hover,.credential-card:hover,.experience-card:hover,.education-card:hover,.security-card:hover{transform:translateY(-3px);border-color:rgba(255,49,88,.48);box-shadow:var(--shadow)}
-.skill-card h3,.case-card h3,.project-card h3,.experience-card h3,.education-card h3,.security-card h3{margin-bottom:12px}
+.skill-card,.case-card,.project-card,.credential-card,.experience-card,.education-card,.security-card,.blog-card{background:linear-gradient(180deg,rgba(11,20,18,.95),rgba(8,14,13,.95));border:1px solid var(--border);border-radius:14px;padding:22px;transition:.2s ease;box-shadow:0 8px 20px rgba(0,0,0,.24)}
+.skill-card:hover,.case-card:hover,.project-card:hover,.credential-card:hover,.experience-card:hover,.education-card:hover,.security-card:hover,.blog-card:hover{transform:translateY(-3px);border-color:rgba(255,49,88,.48);box-shadow:var(--shadow)}
+.skill-card h3,.case-card h3,.project-card h3,.experience-card h3,.education-card h3,.security-card h3,.blog-card h3{margin-bottom:12px}
 .skill-card ul,.case-card ul,.experience-card ul{padding-left:18px;color:var(--muted)}
 .skill-card li,.case-card li,.experience-card li{margin:7px 0}
 
@@ -155,12 +155,19 @@ code{background:rgba(255,49,88,.10);color:var(--accent);padding:2px 5px;border-r
 .case-tags{margin-top:16px;color:var(--accent);font-size:.9rem;font-weight:800}
 .project-grid{grid-template-columns:repeat(4,1fr)}
 .project-card p{color:var(--muted);margin-bottom:18px}
+.project-card .project-link{margin-top:auto}
 .project-tags{display:flex;flex-wrap:wrap;gap:8px}
 .project-tags span,.learning-item{border:1px solid var(--border);background:var(--card-2);padding:7px 10px;border-radius:999px;color:var(--muted);font-size:.85rem}
+.project-link{display:inline-flex;align-items:center;margin-top:14px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;color:var(--accent);text-decoration:none;font-size:.88rem;font-weight:800;transition:.2s ease}
+.project-link::before{content:">";margin-right:8px}
+.project-link:hover{border-color:rgba(255,49,88,.48);background:rgba(255,49,88,.08)}
 .blog-badge{display:inline-flex;width:max-content;padding:5px 9px;border-radius:999px;font-size:.73rem;font-weight:900;text-transform:uppercase;letter-spacing:0;background:rgba(0,212,255,.10);color:var(--accent-2);border:1px solid rgba(0,212,255,.28);margin-bottom:14px}
 .learning-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .learning-item{text-align:center;border-radius:12px;padding:16px;color:var(--text)}
 .contact-section{text-align:center}
+.blog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.blog-card{display:flex;flex-direction:column}
+.blog-card p{color:var(--muted);margin-bottom:14px}
 .contact-box{max-width:850px;margin:0 auto}
 .footer{border-top:1px solid var(--border);padding:26px 0;color:var(--muted);background:rgba(5,8,7,.94)}
 .footer-inner{display:flex;justify-content:space-between;gap:14px;align-items:center}
@@ -181,6 +188,7 @@ code{background:rgba(255,49,88,.10);color:var(--accent);padding:2px 5px;border-r
   .skills-grid,.project-grid,.education-grid,.security-grid{grid-template-columns:repeat(2,1fr)}
   .credential-grid{grid-template-columns:repeat(2,1fr)}
   .guide-grid{grid-template-columns:repeat(2,1fr)}
+  .blog-grid{grid-template-columns:repeat(2,1fr)}
   .experience-card{grid-template-columns:1fr}
 }
 @media(max-width:720px){
@@ -191,7 +199,7 @@ code{background:rgba(255,49,88,.10);color:var(--accent);padding:2px 5px;border-r
   .desktop-nav{left:0;right:0;top:calc(100% + 9px);grid-template-columns:1fr;width:100%;max-height:calc(100vh - 86px);overflow:auto}
   .desktop-nav a{min-height:40px;font-size:.8rem}
   .hero{padding:56px 0 36px}
-  .skills-grid,.case-grid,.project-grid,.credential-grid,.credential-grid.single,.credential-stats,.learning-grid,.education-grid,.security-grid,.guide-grid{grid-template-columns:1fr}
+  .skills-grid,.case-grid,.project-grid,.credential-grid,.credential-grid.single,.credential-stats,.learning-grid,.education-grid,.security-grid,.guide-grid,.blog-grid{grid-template-columns:1fr}
   .footer-inner{flex-direction:column;text-align:center}
 }
 @media(max-width:480px){
@@ -200,7 +208,7 @@ code{background:rgba(255,49,88,.10);color:var(--accent);padding:2px 5px;border-r
   .section-heading h2{font-size:clamp(1.45rem,8vw,2rem)}
   .hero-actions,.contact-pills{gap:9px}
   .btn{width:100%;padding:11px 13px}
-  .summary-card,.confidentiality-card,.contact-box,.hero-card,.skill-card,.case-card,.project-card,.credential-card,.experience-card,.education-card,.security-card,.guide-card{padding:18px}
+  .summary-card,.confidentiality-card,.contact-box,.hero-card,.skill-card,.case-card,.project-card,.credential-card,.experience-card,.education-card,.security-card,.guide-card,.blog-card{padding:18px}
   .credential-stats div{padding:16px}
   .tech-carousel::before,.tech-carousel::after{width:36px}
   .tech-track{gap:8px;padding:14px}

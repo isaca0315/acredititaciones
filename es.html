@@ -484,6 +484,17 @@
             <ul><li>Mejorar validación de despliegues y visibilidad de health checks</li><li>Documentar fallas recurrentes de runtime</li><li>Fortalecer monitoreo y respuesta a alertas</li></ul>
             <p class="case-tags">Operaciones Cloud · Monitoreo · Logs · Health Checks · Troubleshooting</p>
           </article>
+
+          <article class="case-card">
+            <div class="case-number">05</div>
+            <h3>Reproducción de CVEs y diseño de labs de vulnerabilidades públicas</h3>
+            <p class="case-context">Construcción de labs Docker autocontenidos para reproducir vulnerabilidades SSRF reales en frameworks de producción, incluyendo exploits automatizados, retos CTF y análisis completo de remediación.</p>
+            <h4>Aplicado</h4>
+            <ul><li>Reproducción del CVE-2026-44578 (SSRF en handler de upgrade WebSocket de Next.js)</li><li>Laboratorio CTF de5 niveles para el CVE-2026-64849 (bypass de redirect en webhooks de MLflow)</li><li>Diseño de mock IMDS y servicios internos para explotación segura</li><li>Documentación de causa raíz, cadena de ataque, parches y firmas de detección</li></ul>
+            <h4>Habilidades Demostradas</h4>
+            <ul><li>Análisis de vulnerabilidades e identificación de causa raíz (TOCTOU, validación faltante)</li><li>Arquitectura de labs con Docker Compose y topologías de red aisladas</li><li>Desarrollo de exploits y automatización de PoC</li><li>Documentación de seguridad y preparación para disclosure responsable</li></ul>
+            <p class="case-tags">Investigación CVE · SSRF · Docker · Desarrollo de Exploits · AppSec · Diseño CTF</p>
+          </article>
         </div>
       </div>
     </section>
@@ -501,6 +512,18 @@
           <article class="project-card"><h3>Proyecto Secure SDLC - Análisis estático y revisión CI</h3><p>Proyecto académico final sobre prácticas Secure SDLC aplicadas a una aplicación vulnerable, incluyendo SAST, controles CI/CD, documentación de vulnerabilidades, evidencia de remediación y reporte de seguridad.</p><div class="project-tags"><span>Secure SDLC</span><span>SAST</span><span>SonarQube</span><span>GitHub Actions</span><span>AppSec</span><span>CI/CD</span></div></article>
           <article class="project-card"><h3>Práctica de análisis de logs SIEM</h3><p>Escenarios de práctica enfocados en consultar logs, identificar patrones sospechosos y documentar detecciones con flujo de analista de seguridad.</p><div class="project-tags"><span>ELK</span><span>KQL</span><span>Threat Hunting</span><span>IR</span></div></article>
           <article class="project-card"><h3>Práctica de Kubernetes & Platform Engineering</h3><p>Laboratorio enfocado en conceptos de orquestación, flujo de despliegue, exposición de servicios, higiene de configuración y preparación operativa.</p><div class="project-tags"><span>Kubernetes</span><span>Docker</span><span>Deployments</span><span>Platform Engineering</span></div></article>
+          <article class="project-card">
+            <h3>CVE-2026-44578 — Laboratorio SSRF en Next.js</h3>
+            <p>Laboratorio Docker autocontenido que reproduce un SSRF en el handler de upgrade WebSocket de Next.js. Incluye la app vulnerable, mock de AWS IMDS, exploit automatizado y reto CTF con4 flags.</p>
+            <div class="project-tags"><span>CVE</span><span>SSRF</span><span>Docker</span><span>Next.js</span><span>CTF</span><span>Python</span></div>
+            <a class="project-link" href="https://github.com/isaca0315/CVE-2026-44578-next-js-ssrf" target="_blank" rel="noopener noreferrer">Ver Repositorio</a>
+          </article>
+          <article class="project-card">
+            <h3>CVE-2026-64849 — Laboratorio SSRF en MLflow</h3>
+            <p>Laboratorio multi-contenedor que explota un bypass de redirect TOCTOU en webhooks de MLflow. Incluye CTF progresivo de5 niveles, SSRF ciego, exfiltración de metadata cloud y guía completa de explotación.</p>
+            <div class="project-tags"><span>CVE</span><span>SSRF</span><span>TOCTOU</span><span>MLflow</span><span>CTF</span><span>Docker</span></div>
+            <a class="project-link" href="https://github.com/isaca0315/CVE-2026-64849-poc-lab" target="_blank" rel="noopener noreferrer">Ver Repositorio</a>
+          </article>
         </div>
       </div>
     </section>
@@ -509,19 +532,40 @@
       <div class="container">
         <div class="section-heading">
           <p class="eyebrow">Blog</p>
-          <h2>Compartiré notas prácticas de cloud, DevOps y seguridad.</h2>
+          <h2>Investigación práctica en cloud, DevOps y seguridad.</h2>
           <p class="section-note">
-            Estoy construyendo esta sección para publicar artículos basados en mi trabajo y laboratorios.
-            Es una función futura en la que estoy trabajando.
+            Artículos técnicos basados en investigación real de vulnerabilidades, diseño de labs y experiencia en operaciones de producción.
           </p>
         </div>
 
-        <div class="summary-card blog-card">
-          <span class="blog-badge">Próximamente</span>
-          <p>
-            El blog está actualmente en desarrollo. Pronto encontrarás artículos públicos sobre operaciones cloud,
-            aplicaciones en contenedores, troubleshooting de Linux, CI/CD y práctica de infraestructura con enfoque en seguridad.
-          </p>
+        <div class="blog-grid">
+          <article class="blog-card">
+            <span class="blog-badge">Publicado</span>
+            <h3>CVE-2026-44578 — SSRF en WebSocket Upgrade de Next.js</h3>
+            <p>
+              Análisis técnico de un Server-Side Request Forgery en despliegues self-hosted
+              de Next.js. Cubre el handler vulnerable de upgrade WebSocket, arquitectura
+              del lab Docker con mock IMDS y cadena de explotación.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>Next.js</span><span>Docker</span><span>AppSec</span>
+            </div>
+            <a class="project-link" href="blog-nextjs-ssrf-es.html">Leer Artículo</a>
+          </article>
+
+          <article class="blog-card">
+            <span class="blog-badge">Publicado</span>
+            <h3>CVE-2026-64849 — SSRF en Webhooks de MLflow vía TOCTOU</h3>
+            <p>
+              Análisis de un SSRF crítico en MLflow causado por un bypass de validación
+              de redirects. Incluye arquitectura del lab multi-contenedor, cadena de
+              explotación y guía de remediación para el defecto TOCTOU.
+            </p>
+            <div class="project-tags">
+              <span>CVE</span><span>SSRF</span><span>TOCTOU</span><span>MLflow</span><span>Docker</span>
+            </div>
+            <a class="project-link" href="blog-mlflow-ssrf-es.html">Leer Artículo</a>
+          </article>
         </div>
       </div>
     </section>

